@@ -131,10 +131,50 @@ def tobs():
 
 @app.route("/api/v1.0/<start>")
 def start_date(start):
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    # Query the TMIN, TAVG, and TMAX for all dates greater than or equal to the start date
+    results = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
+        filter(measurement.date >= start).all()
+
+    session.close()
+
+    # Create a list of dictionaries containing TMIN, TAVG, and TMAX for the given start date
+    start_temps = []
+    for result in results:
+        temp_dict = {}
+        temp_dict["TMIN"] = result[0]
+        temp_dict["TAVG"] = result[1]
+        temp_dict["TMAX"] = result[2]
+        start_temps.append(temp_dict)
+
+    # Return the JSON representation of the list
+    return jsonify(start_temps)
 
 
 @app.route("/api/v1.0/<start>/<end>")
 def start_end_date(start, end):
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    # Query the TMIN, TAVG, and TMAX for all dates between the start and end dates (inclusive)
+    results = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
+        filter(measurement.date >= start).filter(measurement.date <= end).all()
+
+    session.close()
+
+    # Create a list of dictionaries containing TMIN, TAVG, and TMAX for the given start and end dates
+    start_end_temps = []
+    for result in results:
+        temp_dict = {}
+        temp_dict["TMIN"] = result[0]
+        temp_dict["TAVG"] = result[1]
+        temp_dict["TMAX"] = result[2]
+        start_end_temps.append(temp_dict)
+
+    # Return the JSON representation of the list
+    return jsonify(start_end_temps)
 
 
 if __name__ == '__main__':
